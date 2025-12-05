@@ -1,52 +1,36 @@
 <template>
-  <!-- Hero -->
-  <section v-if="hero" class="relative mb-10">
-    <img :src="heroBackdrop" class="w-full h-[48vh] object-cover rounded-2xl ring-1 ring-white/10" />
-    <div class="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/80 to-black/0"></div>
-    <div class="absolute bottom-6 left-6 max-w-xl">
-      <h2 class="text-3xl sm:text-4xl font-black drop-shadow-md">{{ hero.title }}</h2>
-      <p class="mt-2 line-clamp-3 text-neutral-200/90">{{ hero.overview }}</p>
-      <div class="mt-4 flex gap-3">
-        <button class="btn-primary">재생</button>
-        <button class="px-4 py-2 rounded-md bg-white/10 hover:bg-white/20">자세히</button>
-      </div>
-    </div>
-  </section>
+  <main class="container-nx py-8">
+    <!-- 인기 영화 -->
+    <MovieRow title="🔥 인기 영화" :items="popular" />
 
-  <!-- Rows -->
-  <MovieRow title="지금 상영중" :items="nowPlaying" />
-  <MovieRow title="인기 급상승" :items="popular" />
-  <MovieRow title="평점 최상" :items="topRated" />
-  <MovieRow title="개봉 예정" :items="upcoming" />
+    <!-- 최신 영화 -->
+    <MovieRow title="🆕 최신 개봉작" :items="nowPlaying" />
+
+    <!-- 평점 높은 영화 -->
+    <MovieRow title="⭐ 평점 높은 영화" :items="topRated" />
+  </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { endpoints, fetchMovies } from '../services/tmdb'
+import { ref, onMounted } from 'vue'
 import MovieRow from './partials/MovieRow.vue'
 
-const nowPlaying = ref<any[]>([])
 const popular = ref<any[]>([])
+const nowPlaying = ref<any[]>([])
 const topRated = ref<any[]>([])
-const upcoming = ref<any[]>([])
-const hero = ref<any | null>(null)
-const heroBackdrop = ref('')
 
-onMounted(async ()=>{
-  const [np, pop, top, up] = await Promise.all([
-    fetchMovies(endpoints.nowPlaying()),
-    fetchMovies(endpoints.popular()),
-    fetchMovies(endpoints.topRated()),
-    fetchMovies(endpoints.upcoming())
-  ])
-  nowPlaying.value = np.results
-  popular.value = pop.results
-  topRated.value = top.results
-  upcoming.value = up.results
+const apiKey = import.meta.env.VITE_TMDB_API_KEY
+const lang = 'ko-KR'
 
-  hero.value = pop.results?.[0] || np.results?.[0]
-  heroBackdrop.value = hero.value?.backdrop_path
-      ? `https://image.tmdb.org/t/p/original${hero.value.backdrop_path}`
-      : ''
+async function fetchMovies(endpoint: string) {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=${lang}`)
+  const data = await res.json()
+  return data.results
+}
+
+onMounted(async () => {
+  popular.value = await fetchMovies('popular')
+  nowPlaying.value = await fetchMovies('now_playing')
+  topRated.value = await fetchMovies('top_rated')
 })
 </script>
