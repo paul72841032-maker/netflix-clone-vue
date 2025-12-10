@@ -1,0 +1,63 @@
+name: Deploy Vite site to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]        # 기본 브랜치가 main이 아니라면 여기 수정
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # package-lock.json이 없으면 npm ci에서 오류 → 그땐 npm install로 변경
+      - name: Install deps
+        run: npm ci
+
+      # GitHub "Repository secrets" 에 넣은 값 주입
+      - name: Export env for build
+        run: |
+          echo "VITE_FIREBASE_API_KEY=${{ const firebaseConfig: FirebaseOptions = {
+          apiKey: 'AIzaSyAJHjJc0F_vELao2cgQ5QPyUTUeM6rAXts',
+          authDomain: 'netflix-clone-64140.firebaseapp.com',
+          projectId: 'netflix-clone-64140',
+          storageBucket: 'netflix-clone-64140.firebasestorage.app',
+          messagingSenderId: '832824402998',
+          appId: '1:832824402998:web:ee431de6cd958bf263a497',
+          measurementId: 'G-JPEQSW15NX',}}}" >> $GITHUB_ENV
+          echo "VITE_TMDB_API_KEY=${{bf8860fe5d1b580cdacb42ae04bab0f6 }}" >> $GITHUB_ENV
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
