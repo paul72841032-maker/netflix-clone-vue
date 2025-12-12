@@ -14,21 +14,33 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install
         run: npm ci
 
-      # 🔧 여기 수정됨
+      # ✅ 시크릿을 .env에 기록 (따옴표 금지)
       - name: Create .env
         run: |
           echo VITE_TMDB_API_KEY=${{ secrets.VITE_TMDB_API_KEY }} >> .env
+
+      # ✅ 환경변수 존재 검증 (값을 출력하지는 않음)
+      - name: Check env present
+        run: |
+          test -n "$VITE_TMDB_API_KEY" && echo "Key present ✅" || (echo "Key missing ❌"; exit 1)
+        env:
+          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
+
+      # (선택) API 호출이 200인지 간단히 HEAD 확인
+      - name: Smoke test TMDB (optional)
+        run: |
+          curl -s -I "https://api.themoviedb.org/3/movie/popular?api_key=$VITE_TMDB_API_KEY&language=ko-KR&page=1" | head -n 1
+        env:
+          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
 
       - name: Build
         run: npm run build
@@ -45,6 +57,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
