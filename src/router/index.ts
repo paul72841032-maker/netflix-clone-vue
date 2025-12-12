@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
+// src/router/index.ts
+import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Popular from '../views/Popular.vue'
 import Search from '../views/Search.vue'
@@ -6,7 +7,7 @@ import Wishlist from '../views/Wishlist.vue'
 import SignIn from '../views/SignIn.vue'
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.VITE_APP_BASE || '/'),
+    history: createWebHashHistory(), // ← 여기만 바꾸기
     routes: [
         { path: '/', name: 'home', component: Home },
         { path: '/popular', name: 'popular', component: Popular },
