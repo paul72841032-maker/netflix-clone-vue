@@ -60,8 +60,17 @@ type Movie = {
 const props = defineProps<{ movie: Movie }>()
 
 // 이미지
+const FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="342" height="513">
+     <rect width="100%" height="100%" fill="#111"/>
+     <text x="50%" y="50%" fill="#888" font-size="18" text-anchor="middle">No Image</text>
+   </svg>`
+)
+
 const img = computed(() =>
-    props.movie.poster_path ? `https://image.tmdb.org/t/p/w342${props.movie.poster_path}` : ''
+    props.movie.poster_path
+        ? `https://image.tmdb.org/t/p/w342${props.movie.poster_path}`
+        : FALLBACK
 )
 const overview = computed(() => props.movie.overview || '상세 설명이 없습니다.')
 
