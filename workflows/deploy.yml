@@ -55,6 +55,11 @@ jobs:
         with:
           path: dist
 
+      - name: Export env for build
+        run: |
+          echo "VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}" >> $GITHUB_ENV
+          echo "VITE_TMDB_API_KEY=${{ secrets.VITE_TMDB_API_KEY }}" >> $GITHUB_ENV
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
